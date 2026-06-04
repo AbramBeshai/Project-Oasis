@@ -15,14 +15,15 @@ import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { ResetButton } from './src/components/ResetButton';
 import { StatsPanel } from './src/components/StatsPanel';
 import { XpProgress } from './src/components/XpProgress';
-import { STARTING_QUESTS } from './src/data/quests';
 import { FitnessProfile } from './src/types/fitness';
+import { PlayerStats } from './src/types/stats';
 import { calculateLevelProgress } from './src/utils/leveling';
 import {
   clearFitnessProfile,
   loadFitnessProfile,
   saveFitnessProfile,
 } from './src/utils/profileStorage';
+import { generateDailyQuests } from './src/utils/questGenerator';
 
 // These values become the default answers shown on the onboarding screen.
 const DEFAULT_FITNESS_PROFILE: FitnessProfile = {
@@ -31,6 +32,15 @@ const DEFAULT_FITNESS_PROFILE: FitnessProfile = {
   workoutLength: '20 minutes',
   equipment: 'None',
   limitations: '',
+};
+
+// These are the player's starting RPG stats.
+// Completing generated quests increases the stat connected to that quest.
+const DEFAULT_PLAYER_STATS: PlayerStats = {
+  Strength: 3,
+  Endurance: 2,
+  Agility: 1,
+  Discipline: 4,
 };
 
 // This is the main app screen.
@@ -49,7 +59,12 @@ export default function App() {
   const [xp, setXp] = useState(0);
 
   // Stores all daily quests and whether each one has been completed.
-  const [quests, setQuests] = useState(STARTING_QUESTS);
+  const [quests, setQuests] = useState(
+    generateDailyQuests(DEFAULT_FITNESS_PROFILE)
+  );
+
+  // Stores the player's current RPG stats.
+  const [playerStats, setPlayerStats] = useState(DEFAULT_PLAYER_STATS);
 
   // Stores the user's fitness profile choices.
   // This starts with defaults, then gets replaced by saved data if one exists.
@@ -65,6 +80,7 @@ export default function App() {
 
       if (savedProfile) {
         setFitnessProfile(savedProfile);
+        setQuests(generateDailyQuests(savedProfile));
         setHasCompletedOnboarding(true);
       }
 
@@ -96,6 +112,7 @@ export default function App() {
   // Saves the fitness profile and moves the user from onboarding to daily quests.
   async function completeOnboarding() {
     await saveFitnessProfile(fitnessProfile);
+    setQuests(generateDailyQuests(fitnessProfile));
     setHasCompletedOnboarding(true);
   }
 
@@ -117,6 +134,12 @@ export default function App() {
       )
     );
 
+    // Reward the correct stat for the completed quest.
+    setPlayerStats((currentStats) => ({
+      ...currentStats,
+      [quest.stat]: currentStats[quest.stat] + 1,
+    }));
+
     // If XP reaches 100 or more, level up and carry extra XP forward.
     if (levelProgress.shouldLevelUp) {
       setLevel((currentLevel) => currentLevel + 1);
@@ -130,13 +153,17 @@ export default function App() {
   function resetProgress() {
     setLevel(1);
     setXp(0);
-    setQuests(STARTING_QUESTS);
+    setPlayerStats(DEFAULT_PLAYER_STATS);
+    setQuests(generateDailyQuests(fitnessProfile));
   }
 
   // This clears the saved profile so you can test the onboarding screen again.
   async function resetOnboarding() {
     await clearFitnessProfile();
-    resetProgress();
+    setLevel(1);
+    setXp(0);
+    setPlayerStats(DEFAULT_PLAYER_STATS);
+    setQuests(generateDailyQuests(DEFAULT_FITNESS_PROFILE));
     setFitnessProfile(DEFAULT_FITNESS_PROFILE);
     setHasCompletedOnboarding(false);
   }
@@ -170,7 +197,7 @@ export default function App() {
             </View>
 
             <XpProgress xp={xp} />
-            <StatsPanel level={level} />
+            <StatsPanel stats={playerStats} />
             <DailyQuests quests={quests} onCompleteQuest={completeQuest} />
             <ExerciseLibrary profile={fitnessProfile} />
             <ResetButton onPress={resetProgress} />

@@ -24,7 +24,9 @@ export function DailyQuests({ quests, onCompleteQuest }: DailyQuestsProps) {
         >
           <View>
             <Text style={styles.questTitle}>{quest.title}</Text>
-            <Text style={styles.questXp}>+{quest.xp} XP</Text>
+            <Text style={styles.questXp}>
+              +{quest.xp} XP | {quest.stat}
+            </Text>
           </View>
 
           <Text style={styles.questStatus}>

@@ -1,17 +1,18 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { PlayerStats } from '../types/stats';
 
-// This component calculates and displays the player's RPG-style stats.
-// Later, we can replace these simple formulas with real stat upgrade logic.
+// This component displays the player's RPG-style stats.
+// App.tsx owns the stat values and updates them when quests are completed.
 type StatsPanelProps = {
-  level: number;
+  stats: PlayerStats;
 };
 
-export function StatsPanel({ level }: StatsPanelProps) {
-  const stats = [
-    { label: 'Strength', value: level + 2 },
-    { label: 'Endurance', value: level + 1 },
-    { label: 'Agility', value: level },
-    { label: 'Discipline', value: level + 3 },
+export function StatsPanel({ stats }: StatsPanelProps) {
+  const statItems = [
+    { label: 'Strength', value: stats.Strength },
+    { label: 'Endurance', value: stats.Endurance },
+    { label: 'Agility', value: stats.Agility },
+    { label: 'Discipline', value: stats.Discipline },
   ];
 
   return (
@@ -19,7 +20,7 @@ export function StatsPanel({ level }: StatsPanelProps) {
       <Text style={styles.sectionTitle}>Stats</Text>
 
       <View style={styles.statsGrid}>
-        {stats.map((stat) => (
+        {statItems.map((stat) => (
           <View key={stat.label} style={styles.statBox}>
             <Text style={styles.statLabel}>{stat.label}</Text>
             <Text style={styles.statValue}>{stat.value}</Text>
