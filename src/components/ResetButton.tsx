@@ -1,14 +1,16 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-// This is a small reusable button for resetting test progress.
+// This is a small reusable outline button.
+// App.tsx can change the label and decide what happens when it is pressed.
 type ResetButtonProps = {
+  label?: string;
   onPress: () => void;
 };
 
-export function ResetButton({ onPress }: ResetButtonProps) {
+export function ResetButton({ label = 'Reset Progress', onPress }: ResetButtonProps) {
   return (
     <Pressable style={styles.resetButton} onPress={onPress}>
-      <Text style={styles.resetButtonText}>Reset Progress</Text>
+      <Text style={styles.resetButtonText}>{label}</Text>
     </Pressable>
   );
 }
