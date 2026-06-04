@@ -9,9 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import { DashboardHeader } from './src/components/DashboardHeader';
 import { DailyQuests } from './src/components/DailyQuests';
 import { ExerciseLibrary } from './src/components/ExerciseLibrary';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
+import { QuestProgressSummary } from './src/components/QuestProgressSummary';
 import { ResetButton } from './src/components/ResetButton';
 import { StatsPanel } from './src/components/StatsPanel';
 import { XpProgress } from './src/components/XpProgress';
@@ -235,17 +237,10 @@ export default function App() {
           />
         ) : (
           <>
-            <View style={styles.header}>
-              <Text style={styles.appName}>PROJECT OASIS</Text>
-              <Text style={styles.subtitle}>Level {level} Hunter</Text>
-              <Text style={styles.profileSummary}>
-                {fitnessProfile.goal} | {fitnessProfile.experienceLevel} |{' '}
-                {fitnessProfile.workoutLength}
-              </Text>
-            </View>
-
+            <DashboardHeader level={level} profile={fitnessProfile} />
             <XpProgress xp={xp} />
             <StatsPanel stats={playerStats} />
+            <QuestProgressSummary quests={quests} />
             <DailyQuests quests={quests} onCompleteQuest={completeQuest} />
             <ExerciseLibrary profile={fitnessProfile} />
             <ResetButton onPress={resetProgress} />
@@ -275,23 +270,5 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#cbd5e1',
     fontWeight: '700',
-  },
-  header: {
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  appName: {
-    color: '#ffffff',
-    fontSize: 30,
-    fontWeight: '800',
-  },
-  subtitle: {
-    color: '#7dd3fc',
-    fontSize: 18,
-    marginTop: 4,
-  },
-  profileSummary: {
-    color: '#cbd5e1',
-    marginTop: 6,
   },
 });

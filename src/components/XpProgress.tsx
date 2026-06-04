@@ -7,9 +7,18 @@ type XpProgressProps = {
 };
 
 export function XpProgress({ xp }: XpProgressProps) {
+  const xpRemaining = XP_PER_LEVEL - xp;
+
   return (
     <View style={styles.panel}>
-      <Text style={styles.sectionTitle}>XP Progress</Text>
+      <View style={styles.headingRow}>
+        <View>
+          <Text style={styles.sectionTitle}>XP Progress</Text>
+          <Text style={styles.subtitle}>Next level in {xpRemaining} XP</Text>
+        </View>
+
+        <Text style={styles.xpBadge}>{xp}%</Text>
+      </View>
 
       <View style={styles.xpBarBackground}>
         <View style={[styles.xpBarFill, { width: `${xp}%` }]} />
@@ -24,22 +33,39 @@ export function XpProgress({ xp }: XpProgressProps) {
 
 const styles = StyleSheet.create({
   panel: {
-    backgroundColor: '#101c2f',
-    borderColor: '#24364f',
+    backgroundColor: '#0f2438',
+    borderColor: '#1f6f9b',
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    padding: 18,
+  },
+  headingRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   sectionTitle: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  subtitle: {
+    color: '#93c5fd',
+    fontSize: 13,
     fontWeight: '700',
-    marginBottom: 12,
+    marginTop: 4,
+  },
+  xpBadge: {
+    color: '#7dd3fc',
+    fontSize: 28,
+    fontWeight: '900',
   },
   xpBarBackground: {
-    height: 14,
+    height: 22,
     backgroundColor: '#1f2937',
     borderRadius: 999,
+    marginTop: 16,
     overflow: 'hidden',
   },
   xpBarFill: {
@@ -48,6 +74,8 @@ const styles = StyleSheet.create({
   },
   xpText: {
     color: '#cbd5e1',
-    marginTop: 8,
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 10,
   },
 });
