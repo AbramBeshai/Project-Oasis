@@ -8,4 +8,5 @@ export type PlayerProgress = {
   xp: number;
   stats: PlayerStats;
   quests: Quest[];
+  lastQuestDate: string;
 };

@@ -48,6 +48,8 @@ export function generateDailyQuests(profile: FitnessProfile): Quest[] {
     id: exercise.id,
     title: exercise.variants[profile.experienceLevel],
     stat: exercise.category,
+    difficulty: exercise.difficulty,
+    equipmentRequired: exercise.equipmentRequired,
     xp: exercise.xp,
     completed: false,
   }));

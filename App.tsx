@@ -19,6 +19,7 @@ import { StatsPanel } from './src/components/StatsPanel';
 import { XpProgress } from './src/components/XpProgress';
 import { FitnessProfile } from './src/types/fitness';
 import { PlayerStats } from './src/types/stats';
+import { getTodayKey } from './src/utils/date';
 import { calculateLevelProgress } from './src/utils/leveling';
 import {
   clearFitnessProfile,
@@ -84,19 +85,36 @@ export default function App() {
   useEffect(() => {
     async function prepareApp() {
       const savedProfile = await loadFitnessProfile();
+      const todayKey = getTodayKey();
 
       if (savedProfile) {
         const savedProgress = await loadPlayerProgress();
 
         setFitnessProfile(savedProfile);
 
-        if (savedProgress) {
+        if (savedProgress?.lastQuestDate === todayKey) {
           setLevel(savedProgress.level);
           setXp(savedProgress.xp);
           setPlayerStats(savedProgress.stats);
           setQuests(savedProgress.quests);
         } else {
-          setQuests(generateDailyQuests(savedProfile));
+          const generatedQuests = generateDailyQuests(savedProfile);
+          const savedLevel = savedProgress?.level ?? 1;
+          const savedXp = savedProgress?.xp ?? 0;
+          const savedStats = savedProgress?.stats ?? DEFAULT_PLAYER_STATS;
+
+          setLevel(savedLevel);
+          setXp(savedXp);
+          setPlayerStats(savedStats);
+          setQuests(generatedQuests);
+
+          await savePlayerProgress({
+            level: savedLevel,
+            xp: savedXp,
+            stats: savedStats,
+            quests: generatedQuests,
+            lastQuestDate: todayKey,
+          });
         }
 
         setHasCompletedOnboarding(true);
@@ -130,6 +148,7 @@ export default function App() {
   // Saves the fitness profile and moves the user from onboarding to daily quests.
   async function completeOnboarding() {
     const generatedQuests = generateDailyQuests(fitnessProfile);
+    const todayKey = getTodayKey();
 
     await saveFitnessProfile(fitnessProfile);
     await savePlayerProgress({
@@ -137,6 +156,7 @@ export default function App() {
       xp: 0,
       stats: DEFAULT_PLAYER_STATS,
       quests: generatedQuests,
+      lastQuestDate: todayKey,
     });
 
     setLevel(1);
@@ -185,6 +205,7 @@ export default function App() {
       xp: nextXp,
       stats: nextStats,
       quests: nextQuests,
+      lastQuestDate: getTodayKey(),
     });
   }
 
@@ -202,6 +223,7 @@ export default function App() {
       xp: 0,
       stats: DEFAULT_PLAYER_STATS,
       quests: generatedQuests,
+      lastQuestDate: getTodayKey(),
     });
   }
 
