@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { DailyQuests } from './src/components/DailyQuests';
+import { ExerciseLibrary } from './src/components/ExerciseLibrary';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { ResetButton } from './src/components/ResetButton';
 import { StatsPanel } from './src/components/StatsPanel';
@@ -171,6 +172,7 @@ export default function App() {
             <XpProgress xp={xp} />
             <StatsPanel level={level} />
             <DailyQuests quests={quests} onCompleteQuest={completeQuest} />
+            <ExerciseLibrary profile={fitnessProfile} />
             <ResetButton onPress={resetProgress} />
             <ResetButton label="Edit Fitness Profile" onPress={resetOnboarding} />
           </>
