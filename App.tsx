@@ -23,6 +23,11 @@ import {
   loadFitnessProfile,
   saveFitnessProfile,
 } from './src/utils/profileStorage';
+import {
+  clearPlayerProgress,
+  loadPlayerProgress,
+  savePlayerProgress,
+} from './src/utils/progressStorage';
 import { generateDailyQuests } from './src/utils/questGenerator';
 
 // These values become the default answers shown on the onboarding screen.
@@ -79,8 +84,19 @@ export default function App() {
       const savedProfile = await loadFitnessProfile();
 
       if (savedProfile) {
+        const savedProgress = await loadPlayerProgress();
+
         setFitnessProfile(savedProfile);
-        setQuests(generateDailyQuests(savedProfile));
+
+        if (savedProgress) {
+          setLevel(savedProgress.level);
+          setXp(savedProgress.xp);
+          setPlayerStats(savedProgress.stats);
+          setQuests(savedProgress.quests);
+        } else {
+          setQuests(generateDailyQuests(savedProfile));
+        }
+
         setHasCompletedOnboarding(true);
       }
 
@@ -111,13 +127,25 @@ export default function App() {
 
   // Saves the fitness profile and moves the user from onboarding to daily quests.
   async function completeOnboarding() {
+    const generatedQuests = generateDailyQuests(fitnessProfile);
+
     await saveFitnessProfile(fitnessProfile);
-    setQuests(generateDailyQuests(fitnessProfile));
+    await savePlayerProgress({
+      level: 1,
+      xp: 0,
+      stats: DEFAULT_PLAYER_STATS,
+      quests: generatedQuests,
+    });
+
+    setLevel(1);
+    setXp(0);
+    setPlayerStats(DEFAULT_PLAYER_STATS);
+    setQuests(generatedQuests);
     setHasCompletedOnboarding(true);
   }
 
   // This function runs when the user taps a quest button.
-  function completeQuest(questId: number) {
+  async function completeQuest(questId: number) {
     const quest = quests.find((item) => item.id === questId);
 
     // If the quest does not exist or was already completed, stop here.
@@ -126,40 +154,60 @@ export default function App() {
     }
 
     const levelProgress = calculateLevelProgress(xp, quest.xp);
+    const nextLevel = levelProgress.shouldLevelUp ? level + 1 : level;
+    const nextXp = levelProgress.remainingXp;
+    const nextQuests = quests.map((item) =>
+      item.id === questId ? { ...item, completed: true } : item
+    );
+    const nextStats = {
+      ...playerStats,
+      [quest.stat]: playerStats[quest.stat] + 1,
+    };
 
     // Mark the tapped quest as completed.
-    setQuests((currentQuests) =>
-      currentQuests.map((item) =>
-        item.id === questId ? { ...item, completed: true } : item
-      )
-    );
+    setQuests(nextQuests);
 
     // Reward the correct stat for the completed quest.
-    setPlayerStats((currentStats) => ({
-      ...currentStats,
-      [quest.stat]: currentStats[quest.stat] + 1,
-    }));
+    setPlayerStats(nextStats);
 
     // If XP reaches 100 or more, level up and carry extra XP forward.
     if (levelProgress.shouldLevelUp) {
-      setLevel((currentLevel) => currentLevel + 1);
+      setLevel(nextLevel);
       Alert.alert('Level Up!', 'You became stronger. Keep going.');
     }
 
-    setXp(levelProgress.remainingXp);
+    setXp(nextXp);
+
+    await savePlayerProgress({
+      level: nextLevel,
+      xp: nextXp,
+      stats: nextStats,
+      quests: nextQuests,
+    });
   }
 
   // This resets the quests and XP for testing while you build the app.
-  function resetProgress() {
+  async function resetProgress() {
+    const generatedQuests = generateDailyQuests(fitnessProfile);
+
     setLevel(1);
     setXp(0);
     setPlayerStats(DEFAULT_PLAYER_STATS);
-    setQuests(generateDailyQuests(fitnessProfile));
+    setQuests(generatedQuests);
+
+    await savePlayerProgress({
+      level: 1,
+      xp: 0,
+      stats: DEFAULT_PLAYER_STATS,
+      quests: generatedQuests,
+    });
   }
 
   // This clears the saved profile so you can test the onboarding screen again.
   async function resetOnboarding() {
     await clearFitnessProfile();
+    await clearPlayerProgress();
+
     setLevel(1);
     setXp(0);
     setPlayerStats(DEFAULT_PLAYER_STATS);
