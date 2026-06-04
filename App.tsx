@@ -7,14 +7,23 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
 // This number controls how much XP the player needs before leveling up.
 const XP_PER_LEVEL = 100;
 
+// These arrays hold the choices shown in the Fitness Profile section.
+// Keeping them as arrays makes it easy to add, remove, or rename options later.
+const GOAL_OPTIONS = ['Strength', 'Endurance', 'Weight Loss', 'General Fitness'];
+const EXPERIENCE_OPTIONS = ['Beginner', 'Intermediate', 'Advanced'];
+const WORKOUT_LENGTH_OPTIONS = ['10 minutes', '20 minutes', '30 minutes'];
+const EQUIPMENT_OPTIONS = ['None', 'Dumbbells', 'Gym'];
+const LIMITATION_PRESETS = ['Knee pain', 'Back pain', 'Shoulder injury', 'Low stamina'];
+
 // This is the starting list of daily quests.
-// Later, we can move this into a separate file or database.
+// Later, we can generate these based on the user's fitness profile.
 const STARTING_QUESTS = [
   { id: 1, title: '20 Push-ups', xp: 25, completed: false },
   { id: 2, title: '20 Squats', xp: 25, completed: false },
@@ -31,6 +40,35 @@ export default function App() {
 
   // Stores all daily quests and whether each one has been completed.
   const [quests, setQuests] = useState(STARTING_QUESTS);
+
+  // Stores the user's fitness profile choices.
+  // This is the information we will use later to create better daily quests.
+  const [fitnessProfile, setFitnessProfile] = useState({
+    goal: 'Strength',
+    experienceLevel: 'Beginner',
+    workoutLength: '20 minutes',
+    equipment: 'None',
+    limitations: '',
+  });
+
+  // Updates one field inside the fitness profile without deleting the other fields.
+  function updateFitnessProfile(field: string, value: string) {
+    setFitnessProfile((currentProfile) => ({
+      ...currentProfile,
+      [field]: value,
+    }));
+  }
+
+  // Adds a preset injury/limitation into the text box.
+  // If the text box already has something, it adds the new preset after a comma.
+  function addLimitationPreset(preset: string) {
+    setFitnessProfile((currentProfile) => ({
+      ...currentProfile,
+      limitations: currentProfile.limitations
+        ? `${currentProfile.limitations}, ${preset}`
+        : preset,
+    }));
+  }
 
   // This function runs when the user taps a quest button.
   function completeQuest(questId: number) {
@@ -75,6 +113,131 @@ export default function App() {
         <View style={styles.header}>
           <Text style={styles.appName}>PROJECT OASIS</Text>
           <Text style={styles.subtitle}>Level {level} Hunter</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.sectionTitle}>Fitness Profile</Text>
+
+          <Text style={styles.fieldLabel}>Goal</Text>
+          <View style={styles.optionGrid}>
+            {GOAL_OPTIONS.map((goal) => (
+              <Pressable
+                key={goal}
+                style={[
+                  styles.optionButton,
+                  fitnessProfile.goal === goal && styles.optionButtonSelected,
+                ]}
+                onPress={() => updateFitnessProfile('goal', goal)}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    fitnessProfile.goal === goal && styles.optionTextSelected,
+                  ]}
+                >
+                  {goal}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Experience Level</Text>
+          <View style={styles.optionGrid}>
+            {EXPERIENCE_OPTIONS.map((experienceLevel) => (
+              <Pressable
+                key={experienceLevel}
+                style={[
+                  styles.optionButton,
+                  fitnessProfile.experienceLevel === experienceLevel &&
+                    styles.optionButtonSelected,
+                ]}
+                onPress={() =>
+                  updateFitnessProfile('experienceLevel', experienceLevel)
+                }
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    fitnessProfile.experienceLevel === experienceLevel &&
+                      styles.optionTextSelected,
+                  ]}
+                >
+                  {experienceLevel}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Workout Length</Text>
+          <View style={styles.optionGrid}>
+            {WORKOUT_LENGTH_OPTIONS.map((workoutLength) => (
+              <Pressable
+                key={workoutLength}
+                style={[
+                  styles.optionButton,
+                  fitnessProfile.workoutLength === workoutLength &&
+                    styles.optionButtonSelected,
+                ]}
+                onPress={() => updateFitnessProfile('workoutLength', workoutLength)}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    fitnessProfile.workoutLength === workoutLength &&
+                      styles.optionTextSelected,
+                  ]}
+                >
+                  {workoutLength}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Equipment</Text>
+          <View style={styles.optionGrid}>
+            {EQUIPMENT_OPTIONS.map((equipment) => (
+              <Pressable
+                key={equipment}
+                style={[
+                  styles.optionButton,
+                  fitnessProfile.equipment === equipment &&
+                    styles.optionButtonSelected,
+                ]}
+                onPress={() => updateFitnessProfile('equipment', equipment)}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    fitnessProfile.equipment === equipment &&
+                      styles.optionTextSelected,
+                  ]}
+                >
+                  {equipment}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Limitations or Injuries</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Optional: knee pain, back pain, etc."
+            placeholderTextColor="#64748b"
+            value={fitnessProfile.limitations}
+            onChangeText={(text) => updateFitnessProfile('limitations', text)}
+          />
+
+          <View style={styles.presetRow}>
+            {LIMITATION_PRESETS.map((preset) => (
+              <Pressable
+                key={preset}
+                style={styles.presetButton}
+                onPress={() => addLimitationPreset(preset)}
+              >
+                <Text style={styles.presetText}>{preset}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         <View style={styles.panel}>
@@ -182,6 +345,63 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
+  },
+  fieldLabel: {
+    color: '#cbd5e1',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 4,
+  },
+  optionButton: {
+    backgroundColor: '#0b1526',
+    borderColor: '#24364f',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  optionButtonSelected: {
+    backgroundColor: '#38bdf8',
+    borderColor: '#7dd3fc',
+  },
+  optionText: {
+    color: '#cbd5e1',
+    fontWeight: '700',
+  },
+  optionTextSelected: {
+    color: '#08111f',
+  },
+  textInput: {
+    backgroundColor: '#0b1526',
+    borderColor: '#24364f',
+    borderWidth: 1,
+    borderRadius: 8,
+    color: '#ffffff',
+    padding: 12,
+  },
+  presetRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  presetButton: {
+    backgroundColor: '#172554',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  presetText: {
+    color: '#bfdbfe',
+    fontSize: 12,
+    fontWeight: '700',
   },
   xpBarBackground: {
     height: 14,
